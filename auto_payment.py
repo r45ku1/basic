@@ -317,8 +317,8 @@ def payment_processing():
         print(exc)
 
 
-#FROM_ADDRESS = create_user_wallet()['result']
-FROM_ADDRESS = "3749f574eb68e9ec77422fbcb882b5ee733da627983d7c76f4814b05172cf4a0893"
+FROM_ADDRESS = create_user_wallet()['result']
+# FROM_ADDRESS = "newwaddressgenerated"
 create_table(
 """
 CREATE TABLE IF NOT EXISTS `txs` (

@@ -1,5 +1,5 @@
 {
-  "httpprovider": "http://127.0.0.1:10005/api/wallet",
+  "httpprovider": "http://127.0.0.1:11111/api/wallet",
   "sql_settings": {
     "user": "mysqluser",
     "password": "mysqlpassword",
