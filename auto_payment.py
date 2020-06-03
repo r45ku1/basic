@@ -35,7 +35,7 @@ def get_users_shares(time):
         for _r in records:
             if str(_r['userid']) not in users_shares:
                 users_shares[str(_r['userid'])] = 0
-            users_shares[str(_r['userid'])] += 1
+            users_shares[str(_r['userid'])] += _r['sharediff']
 
         return users_shares
     except Exception as exc:
@@ -43,7 +43,7 @@ def get_users_shares(time):
 
 
 def get_users_portion(shares):
-    total_shares = sum([int(shares[_x]) for _x in list(shares.keys())])
+    total_shares = sum([float(shares[_x]) for _x in list(shares.keys())])
     portions = {}
     for _x in list(shares.keys()):
         user_portion = "{0:.2f}".format(float(shares[_x] / total_shares))
@@ -197,9 +197,10 @@ def update_balance():
                     print(f"Tx {_tx['txId']}  {_tx['status_string']} to {_tx['receiver']}")
 
                 elif _tx['status'] == 2:
+                    print(_tx)
                     cursor.execute(
                         f"INSERT INTO txs (txId,timestamp,sender,receiver,kernel,status,fee,value,comment) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                        (_tx['txId'], _tx['create_time'], _tx['sender'], _tx['receiver'], _tx['kernel'], _tx['status'], _tx['fee'],
+                        (_tx['txId'], _tx['create_time'], _tx['sender'], _tx['receiver'], "0000000000000000000000000000", _tx['status'], _tx['fee'],
                          _tx['value'], _tx['comment'])
                     )
                     cnx.commit()
@@ -277,18 +278,21 @@ def update_tables_on_payment():
             block_height = int(_x['height'])
 
 
+            if reward_in_beams < 0:
+                continue
+
             cursor.execute(
                 f"INSERT INTO payments (to_address, timestamp, txId, status, fee, withdrawal_fee, value, block_height) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                 (_account['username'], timestamp, None, "PENDING", DEFAULT_FEE, withdrawal_fee_groth, reward_in_groth, block_height)
             )
             cnx.commit()
-            print("UPDATE blocks SET paid = %s, paid_at = %s WHERE height = %s" %
-                (True, timestamp, block_height))
-            cursor.execute(
-                "UPDATE blocks SET paid = %s, paid_at = %s WHERE height = %s",
-                (True, timestamp, block_height)
-            )
-            cnx.commit()
+        print("UPDATE blocks SET paid = %s, paid_at = %s WHERE height = %s" %
+            (True, timestamp, block_height))
+        cursor.execute(
+            "UPDATE blocks SET paid = %s, paid_at = %s WHERE height = %s",
+            (True, timestamp, block_height)
+        )
+        cnx.commit()
 
 
 def payment_processing():
@@ -313,8 +317,8 @@ def payment_processing():
         print(exc)
 
 
-FROM_ADDRESS = create_user_wallet()['result']
-
+#FROM_ADDRESS = create_user_wallet()['result']
+FROM_ADDRESS = "3749f574eb68e9ec77422fbcb882b5ee733da627983d7c76f4814b05172cf4a0893"
 create_table(
 """
 CREATE TABLE IF NOT EXISTS `txs` (

@@ -1,9 +1,9 @@
 {
   "httpprovider": "http://127.0.0.1:10005/api/wallet",
   "sql_settings": {
-    "user": "beampay",
-    "password": "b34mp4y",
-    "host": "pool.raskul.com",
+    "user": "mysqluser",
+    "password": "mysqlpassword",
+    "host": "127.0.0.1",
     "database": "beam",
     "raise_on_warnings": true
   }
