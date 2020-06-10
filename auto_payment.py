@@ -16,7 +16,7 @@ cursor = cnx.cursor(dictionary=True, buffered=True)
 DEFAULT_BLOCK_REWARD = 40
 DEFAULT_FEE = 100
 GROTH_IN_BEAM = 100000000
-WITHDRAWAL_FEE_PERC = 0
+WITHDRAWAL_FEE_PERC = 1
 
 
 def get_unpaid_blocks():
@@ -237,7 +237,7 @@ def update_balance():
 
 def check_hung_txs(tx):
     try:
-        cancel_ts = int((datetime.datetime.now() - datetime.timedelta(minutes=10)).timestamp())
+        cancel_ts = int((datetime.datetime.now() - datetime.timedelta(minutes=720)).timestamp())
         if int(tx['create_time']) < cancel_ts:
             result = cancel_tx(tx_id=tx['txId'])
             print("Transaction %s cancelled\n%s" % (tx['txId'], result))

@@ -1,4 +1,4 @@
-# How to deploy BASiC(Payment Processor)
+# How to deploy BASiC(Beam Pool Payment Processor)
 
 ## Install Python
 Please, install Python using the link below
@@ -21,3 +21,6 @@ Please, install Python using the link below
 Write down next cmd to launch payment processor every 3 minutes:
 
 `*/3 * * * * cd /root/basic;python3 auto_payment.py`
+
+
+All code released with no warranty and no support assistance.
