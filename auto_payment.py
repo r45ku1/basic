@@ -255,7 +255,7 @@ def check_free_utxos():
         free_utxos = [{"amount": _x['amount'], "id": _x['id']} for _x in get_utxo(count=10000)['result'] if _x['status'] == 1]
         print("FREE UTXO: %s" % len(free_utxos))
         free_utxos_count = 15
-        if len(free_utxos) < free_utxos_count:
+        if len(free_utxos) < 5:
             w_status = wallet_status()
             available = w_status['result']['available']
             if int(available / GROTH_IN_BEAM) > 1:
