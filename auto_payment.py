@@ -127,6 +127,7 @@ def send_transaction(
         Send transaction
     """
     try:
+        coins = get_coins(fee=fee, value=value)
         response = requests.post(
             httpprovider,
             json.dumps({
@@ -139,13 +140,135 @@ def send_transaction(
                         "fee": fee,
                         "from": from_address,
                         "address": to_address,
-                        "comment": comment
+                        "comment": comment,
+                        "coins": coins
                     }
             })).json()
         print(response)
         return response
     except Exception as exc:
         print(exc)
+
+def get_coins(fee, value):
+    try:
+        free_utxos = [{"amount": _x['amount'], "id": _x['id']} for _x in get_utxo(count=10000)['result'] if _x['status'] == 1]
+        full_value_utxo = None
+        coins = []
+        coins_sum = 0
+        fee_utxos = []
+        fee_sum = 0
+        for _utxo in free_utxos:
+            try:
+                if _utxo['amount'] == value:
+                    full_value_utxo = _utxo['id']
+                    free_utxos.remove(_utxo)
+                    break
+            except Exception as exc:
+                print(exc)
+
+        if full_value_utxo is None:
+            for _utxo in free_utxos:
+                try:
+                    if coins_sum < value:
+                        coins_sum += _utxo['amount']
+                        coins.append(_utxo['id'])
+                        free_utxos.remove(_utxo)
+                    else:
+                        break
+                except Exception as exc:
+                    print(exc)
+
+
+
+        for _utxo in free_utxos:
+            try:
+                if fee_sum < fee:
+                    fee_sum += _utxo['amount']
+                    fee_utxos.append(_utxo['id'])
+                else:
+                    break
+            except Exception as exc:
+                print(exc)
+
+
+        if full_value_utxo is not None:
+            coins = [full_value_utxo, *fee_utxos]
+        else:
+            coins = [*coins, *fee_utxos]
+
+        return coins
+    except Exception as exc:
+        print(exc)
+        traceback.print_exc()
+
+def get_utxo(count=100, skip=0):
+    response = requests.post(
+        httpprovider,
+        data=json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "method": "get_utxo",
+                "params":
+                    {
+                        "count": count,
+                        "skip": skip
+                    }
+            })).json()
+    return response
+
+
+def wallet_status():
+    response = requests.post(
+        httpprovider,
+        data=json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "method": "wallet_status",
+            })).json()
+
+    return response
+
+
+def split_coins(coins, fee):
+    response = requests.post(
+        httpprovider,
+        data=json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "method": "tx_split",
+                "params":
+                    {
+
+                        "coins": coins,
+                        "fee": fee
+                    }
+            })).json()
+
+    return response
+
+
+def check_free_utxos():
+    try:
+        free_utxos = [{"amount": _x['amount'], "id": _x['id']} for _x in get_utxo(count=10000)['result'] if _x['status'] == 1]
+        print("FREE UTXO: %s" % len(free_utxos))
+        free_utxos_count = 15
+        if len(free_utxos) < free_utxos_count:
+            w_status = wallet_status()
+            available = w_status['result']['available']
+            if int(available / GROTH_IN_BEAM) > 1:
+                coins_amount = available / (free_utxos_count + 1)
+                coins = [int(coins_amount) for _ in range(free_utxos_count)]
+
+                SPLIT_FEE = 10000
+                result = split_coins(coins=coins, fee=10000)
+                print("Coins SPLITED", result)
+
+    except Exception as exc:
+        print(exc)
+        traceback.print_exc()
 
 
 def update_balance():
@@ -278,7 +401,7 @@ def update_tables_on_payment():
             block_height = int(_x['height'])
 
 
-            if reward_in_beams < 0:
+            if reward_in_groth < 0:
                 continue
 
             cursor.execute(
@@ -352,6 +475,7 @@ PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4;
 """)
 
+check_free_utxos()
 update_balance()
 update_tables_on_payment()
 payment_processing()
