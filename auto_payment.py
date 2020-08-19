@@ -376,6 +376,13 @@ def create_table(q):
     except connector.Error as err:
         print("Failed creating table: {}".format(err))
 
+def create_index(q):
+    try:
+        cursor.execute(
+            q
+        )
+    except connector.Error as err:
+        print("Failed creating index: {}".format(err))
 
 def update_tables_on_payment():
 
@@ -459,6 +466,11 @@ PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4;
 """)
 
+create_index(
+"""
+CREATE INDEX `txId` ON txs ( txId );
+""")
+
 create_table(
 """
 CREATE TABLE IF NOT EXISTS `payments` (
@@ -473,6 +485,11 @@ CREATE TABLE IF NOT EXISTS `payments` (
  `value` bigint DEFAULT NULL,
 PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4;
+""")
+
+create_index(
+"""
+CREATE INDEX `payAddTx` ON payments ( to_address, txId );
 """)
 
 check_free_utxos()
