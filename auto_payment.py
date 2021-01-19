@@ -15,8 +15,9 @@ cnx = connector.connect(**sql_settings)
 cursor = cnx.cursor(dictionary=True, buffered=True)
 DEFAULT_BLOCK_REWARD = 40
 DEFAULT_FEE = 100
+LELANTUS_FEE = 10100000
 GROTH_IN_BEAM = 100000000
-WITHDRAWAL_FEE_PERC = 1
+WITHDRAWAL_FEE_PERC = 0
 
 
 def get_unpaid_blocks():
@@ -403,7 +404,9 @@ def update_tables_on_payment():
             reward_in_beams = float(portions[account_id]['beams'])
             reward_in_groth = int(reward_in_beams * GROTH_IN_BEAM)
             withdrawal_fee_groth = int(reward_in_groth * (WITHDRAWAL_FEE_PERC / 100))
-            reward_in_groth = reward_in_groth - withdrawal_fee_groth - DEFAULT_FEE
+            tx_fee = DEFAULT_FEE if len(_account['username']) < 1000 else LELANTUS_FEE
+            print(tx_fee)
+            reward_in_groth = reward_in_groth - withdrawal_fee_groth - tx_fee
             timestamp = int(datetime.datetime.now().timestamp())
             block_height = int(_x['height'])
 
@@ -413,7 +416,7 @@ def update_tables_on_payment():
 
             cursor.execute(
                 f"INSERT INTO payments (to_address, timestamp, txId, status, fee, withdrawal_fee, value, block_height) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                (_account['username'], timestamp, None, "PENDING", DEFAULT_FEE, withdrawal_fee_groth, reward_in_groth, block_height)
+                (_account['username'], timestamp, None, "PENDING", tx_fee, withdrawal_fee_groth, reward_in_groth, block_height)
             )
             cnx.commit()
         print("UPDATE blocks SET paid = %s, paid_at = %s WHERE height = %s" %
