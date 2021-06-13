@@ -14,10 +14,11 @@ cnx = connector.connect(**sql_settings)
 
 cursor = cnx.cursor(dictionary=True, buffered=True)
 DEFAULT_BLOCK_REWARD = 40
-DEFAULT_FEE = 100
-LELANTUS_FEE = 10100000
+DEFAULT_FEE = 100000
+LELANTUS_FEE = 1100000
 GROTH_IN_BEAM = 100000000
 WITHDRAWAL_FEE_PERC = 0
+
 
 
 def get_unpaid_blocks():
